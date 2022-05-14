@@ -4,7 +4,22 @@ using UnityEngine;
 
 public class PersistenceManager : MonoBehaviour
 {
+    public static PersistenceManager Instance;
     // Start is called before the first frame update
+    public string playerName = "player";
+    public int highScore;
+    public string highScoreName;
+
+    //Only one instance of PeristenceManager can exist at once
+    private void Awake()
+    {
+        if(Instance != null)
+        {
+            Destroy(gameObject);
+        }
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+    }
     void Start()
     {
         
