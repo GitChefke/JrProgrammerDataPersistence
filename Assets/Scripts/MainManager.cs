@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using System.IO;
 
 public class MainManager : MonoBehaviour
 {
@@ -11,16 +12,20 @@ public class MainManager : MonoBehaviour
     public Rigidbody Ball;
 
     public Text ScoreText;
+    public Text HighScoreText;
     public GameObject GameOverText;
     
     private bool m_Started = false;
     private int m_Points;
     
+    
     private bool m_GameOver = false;
 
     public string playerName = "Player";
+    private int highScore = 0;
+    private string highScoreName = "highscoreplayer";
 
-    
+
     // Start is called before the first frame update
     void Start()
     {
@@ -41,8 +46,14 @@ public class MainManager : MonoBehaviour
         //Get playername
         playerName = PersistenceManager.Instance.playerName;
 
+        //Load high scores from file
+        LoadHighScore();
+
         //Initialize scoretext
         ScoreText.text = $"{playerName} Score : {m_Points}";
+        HighScoreText.text = $"Best Score: {highScoreName} : {highScore}";
+
+        
     }
 
     private void Update()
@@ -78,7 +89,50 @@ public class MainManager : MonoBehaviour
 
     public void GameOver()
     {
+        if(m_Points > highScore)
+        {
+            highScore = m_Points;
+            highScoreName = playerName;
+            HighScoreText.text = $"Best Score: {highScoreName} : {highScore}";
+            SaveHighScore();
+        }
+
+
         m_GameOver = true;
         GameOverText.SetActive(true);
     }
+
+    [System.Serializable]
+    class SaveData
+    {
+        public int highScore;
+        public string highScoreName;
+
+    }
+
+    public void SaveHighScore()
+    {
+        SaveData data = new SaveData();
+        data.highScore = highScore;
+        data.highScoreName = highScoreName;
+
+        string json = JsonUtility.ToJson(data);
+
+        File.WriteAllText(Application.persistentDataPath + "/savefile.json", json);
+
+    }
+
+    public void LoadHighScore()
+    {
+        string path = Application.persistentDataPath + "/savefile.json";
+        if (File.Exists(path))
+        {
+            string json = File.ReadAllText(path);
+            SaveData savedata = JsonUtility.FromJson<SaveData>(json);
+            highScore = savedata.highScore;
+            highScoreName = savedata.highScoreName;
+        }
+    }
+
+    
 }
